@@ -1,0 +1,42 @@
+[
+  {
+    "apalancamiento": 0.3,
+    "margen": 0.003,
+    "money": 2500,
+    "numberStocksInPortfolio": 10,
+    "prediccion": 1,
+    "percentil": 95,
+    "rlog_size": 22,
+    "ring_size": 252
+  },
+    {
+    "apalancamiento": 0.3,
+    "margen": 0.003,
+    "money": 2500,
+    "numberStocksInPortfolio": 10,
+    "prediccion": 3,
+    "percentil": 50,
+    "rlog_size": 22,
+    "ring_size": 252
+  },
+    {
+    "apalancamiento": 0.3,
+    "margen": 0.003,
+    "money": 2500,
+    "numberStocksInPortfolio": 10,
+    "prediccion": 1,
+    "percentil": 50,
+    "rlog_size": 22,
+    "ring_size": 252
+  },
+    {
+    "apalancamiento": 0.3,
+    "margen": 0.003,
+    "money": 2500,
+    "numberStocksInPortfolio": 10,
+    "prediccion": 3,
+    "percentil": 95,
+    "rlog_size": 22,
+    "ring_size": 252
+  }
+]
