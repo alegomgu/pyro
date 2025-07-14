@@ -27,17 +27,23 @@ class TelegramBot:
 
     def send_message(self, message: str, markdown: bool = True):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
-        payload = {
-            "chat_id": self.chat_id,
-            "text": message,
-            "parse_mode": "Markdown" if markdown else None
-        }
-        try:
-            resp = requests.post(url, data=payload)
-            if not resp.ok:
-                print(f"⚠️ Error en la respuesta de Telegram: {resp.text}")
-        except Exception as e:
-            print(f"❌ Error al enviar mensaje: {e}")
+        max_length = 4096
+
+        # Divide el mensaje en bloques de hasta 4096 caracteres
+        messages = [message[i:i + max_length] for i in range(0, len(message), max_length)]
+
+        for part in messages:
+            payload = {
+                "chat_id": self.chat_id,
+                "text": part,
+                "parse_mode": "Markdown" if markdown else None
+            }
+            try:
+                resp = requests.post(url, data=payload)
+                if not resp.ok:
+                    print(f"⚠️ Error en la respuesta de Telegram: {resp.text}")
+            except Exception as e:
+                print(f"❌ Error al enviar mensaje: {e}")
 
     def send_photo(self, photo_file):
         url = f"https://api.telegram.org/bot{self.token}/sendPhoto"
