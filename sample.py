@@ -79,38 +79,38 @@ try:
     # ev.print()
     bot.send_message("📡 *Conectando a IB Gateway...*")
 
-    # from driver.driverIB import DriverIB as Driver
-    # d = Driver(4001)
-    # d.conectar()
-    # bot.send_message("✅ *Conectado a IB Gateway.*")
+    from driver.driverIB import DriverIB as Driver
+    d = Driver(4001)
+    d.conectar()
+    bot.send_message("✅ *Conectado a IB Gateway.*")
 
-    # s.set_profolio(d.cash(), d.profolio(sp.symbols))
-    # orders = s.open(source.realTime(sp.symbols))
-    # d.clearOrders()
+    s.set_profolio(d.cash(), d.profolio(sp.symbols))
+    orders = s.open(source.realTime(sp.symbols))
+    d.clearOrders()
 
-    # msg = f"📆 *Órdenes del día {datetime.now().strftime('%Y-%m-%d')}*\n\n"
+    msg = f"📆 *Órdenes del día {datetime.now().strftime('%Y-%m-%d')}*\n\n"
 
-    # if not orders["programBuy"] and not orders["programSell"]:
-    #     msg += "ℹ️ *No se han generado órdenes para hoy.*"
-    #     bot.send_message(msg)
-    # else:
-    #     # 8. Enviar órdenes BUY
-    #     msg += "🟢 *COMPRAR*\n"
-    #     for order in orders["programBuy"]:
-    #         precio = round(order['price'], 2)
-    #         cantidad = int(round(order['amount'] / precio))
-    #         msg += f"• {cantidad} acciones de {sp.symbols[order['id']]} a ${precio:.2f}\n"
-    #         d.buy_limit(sp.symbols[order['id']], cantidad, precio)
+    if not orders["programBuy"] and not orders["programSell"]:
+        msg += "ℹ️ *No se han generado órdenes para hoy.*"
+        bot.send_message(msg)
+    else:
+        # 8. Enviar órdenes BUY
+        msg += "🟢 *COMPRAR*\n"
+        for order in orders["programBuy"]:
+            precio = round(order['price'], 2)
+            cantidad = int(round(order['amount'] / precio))
+            msg += f"• {cantidad} acciones de {sp.symbols[order['id']]} a ${precio:.2f}\n"
+            d.buy_limit(sp.symbols[order['id']], cantidad, precio)
 
-    #     # 9. Enviar órdenes SELL
-    #     msg += "\n🔴 *VENDER*\n"
-    #     for order in orders["programSell"]:
-    #         precio = round(order['price'], 2)
-    #         cantidad = order['amount'] / precio
-    #         msg += f"• {cantidad:.2f} acciones de {sp.symbols[order['id']]} a ${precio:.2f}\n"
-    #         d.sell_limit(sp.symbols[order['id']], cantidad, precio)
+        # 9. Enviar órdenes SELL
+        msg += "\n🔴 *VENDER*\n"
+        for order in orders["programSell"]:
+            precio = round(order['price'], 2)
+            cantidad = order['amount'] / precio
+            msg += f"• {cantidad:.2f} acciones de {sp.symbols[order['id']]} a ${precio:.2f}\n"
+            d.sell_limit(sp.symbols[order['id']], cantidad, precio)
 
-    #     bot.send_message(msg)
+        bot.send_message(msg)
 
 
     save_resume(simulator, sp, tasacion, p)
