@@ -1,7 +1,4 @@
 from ib_insync import IB, LimitOrder, Contract
-import pytz
-import datetime
-import math
 import requests
 import yfinance as yf
 import pandas as pd
@@ -33,8 +30,6 @@ def send_telegram_message(message: str, token: str, chat_id: str):
     """
     Envía un mensaje a Telegram manejando correctamente emojis y caracteres especiales.
     """
-    import requests
-
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     safe_message = message.encode('utf-16', 'surrogatepass').decode('utf-16')
     payload = {
@@ -149,12 +144,76 @@ def resumen_yfinance(driver):
 
     return msg
 
+def resume(driver, token, chat_id):
+    ps = driver.ib.portfolio()
+    cash = driver.cash()
+
+    portfolio = []
+    for p in ps:
+        if p.position <= 0:
+            continue
+
+        ticker = p.contract.symbol
+        shares = p.position
+        avg_cost = p.averageCost
+        ib_price = p.marketPrice
+
+        try:
+            yf_data = yf.Ticker(ticker).history(period="1d", interval="1m")
+            yf_price = yf_data["Close"].iloc[-1]
+            yf_open = yf_data["Open"].iloc[0]
+        except Exception as e:
+            print(f"❌ Error con YFinance para {ticker}: {e}")
+            yf_price, yf_open = ib_price, ib_price  # fallback a precio IB
+
+        total_cost = avg_cost * shares
+        yf_mv = yf_price * shares
+        yf_gain = yf_mv - total_cost
+        yf_pct = (yf_gain / total_cost) * 100 if total_cost != 0 else 0
+        daily_gain = (yf_price - yf_open) * shares
+        daily_pct = ((yf_price - yf_open) / yf_open) * 100 if yf_open != 0 else 0
+
+        portfolio.append({
+            "Ticker": ticker,
+            "Shares": shares,
+            "AC": avg_cost,
+            "YF Price": yf_price,
+            "Tot G/P YF": yf_gain,
+            "Tot % YF": yf_pct,
+            "Daily G/P": daily_gain,
+            "Daily %": daily_pct
+        })
+
+    # Construir tabla
+    msg = "📊 *Resumen completo de portafolio*\n\n"
+    msg += "```\n"
+    msg += f"{'Ticker':<6} {'Qty':>4} {'AC':>6} {'YF':>6} {'G/P%':>7} {'Día%':>7} {'💰'}\n"
+    msg += "-" * 40 + "\n"
+
+    total_cost = total_yf_gain = total_daily_gain = 0
+
+    for p in portfolio:
+        emoji = "📈" if p['Tot G/P YF'] >= 0 else "📉"
+        msg += f"{p['Ticker']:<6} {p['Shares']:>4} {p['AC']:>6.2f} {p['YF Price']:>6.2f} {p['Tot % YF']:>6.2f}% {p['Daily %']:>6.2f}% {emoji}\n"
+        total_cost += p['AC'] * p['Shares']
+        total_yf_gain += p['Tot G/P YF']
+        total_daily_gain += p['Daily G/P']
+
+    msg += "```\n"
+    msg += (
+        f"💵 *Cash disponible (IB)*: `${cash:,.2f}`\n"
+        f"📈 *Total G/P (YF)*: `${total_yf_gain:+,.2f}` ({(total_yf_gain/total_cost)*100:+.2f}%)\n"
+        f"📅 *Variación diaria total*: `${total_daily_gain:+,.2f}`"
+    )
+
+    send_telegram_message(msg, token, chat_id)
+
 if __name__ == "__main__":
     d = DriverIB(4001)
     d.conectar()
+    resume(d,TELEGRAM_TOKEN,TELEGRAM_CHAT_ID)
+    # msg_ib = resumen_driver_ib(d)
+    # send_telegram_message(msg_ib, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
 
-    msg_ib = resumen_driver_ib(d)
-    send_telegram_message(msg_ib, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
-
-    msg_yf = resumen_yfinance(d)
-    send_telegram_message(msg_yf, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
+    # msg_yf = resumen_yfinance(d)
+    # send_telegram_message(msg_yf, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
